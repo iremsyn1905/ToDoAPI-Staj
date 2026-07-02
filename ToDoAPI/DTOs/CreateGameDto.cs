@@ -1,14 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc.TagHelpers;
-
-namespace ToDoAPI
+﻿namespace ToDoAPI.DTOs
 {
-    public class GameItem
+    public class CreateGameDto
     {
-        public int Id { get; set; }
         public string Name { get; set; }
         public string Genre { get; set; }
         public double Rating { get; set; }
         public bool IsInstalled { get; set; }
     }
 }
-    

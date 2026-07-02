@@ -1,56 +1,83 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using ToDoAPI.DTOs;
 
 namespace ToDoAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ToDoController : ControllerBase
+    public class GameController : ControllerBase
     {
-        // Şimdilik veritabanı yerine hafızada statik bir liste tutuyoruz
-        private static List<ToDoItem> _todoList = new List<ToDoItem>
+        private static List<GameItem> _gamelist = new List<GameItem>
         {
-            new ToDoItem { Id = 1, Title = "Stajın 1. gününü tamamla", IsCompleted = true },
-            new ToDoItem { Id = 2, Title = "Yazdığın kodu GitHub'a gönder", IsCompleted = false }
+            new GameItem { Id = 1, Name = "GTA V", Genre = "Aksiyon/Açık Dünya", Rating = 9.5, IsInstalled = true },
+            new GameItem { Id = 2, Name = "Cyberpunk 2077", Genre = "Suç,Aksiyon", Rating = 8.8, IsInstalled = false }
         };
-
-        // GET: api/todo (Tüm listeyi getirir)
         [HttpGet]
+      
         public IActionResult GetAll()
         {
-            return Ok(_todoList);
+            
+            return Ok(_gamelist);
         }
-
-        // POST: api/todo (Yeni görev ekler)
         [HttpPost]
-        public IActionResult Create([FromBody] ToDoItem item)
+        /// <summary>
+        /// Sistemde yeni bir oyun oluşturur.
+        /// </summary>
+        /// <remarks>
+        /// Bu metodu tetiklemek için sağ üstteki kilit butonundan (Bearer Token) giriş yapılmış olması gerekir.
+        /// </remarks>
+       
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public IActionResult Create([FromBody] CreateGameDto newGameDto)
+        
+      
         {
-            item.Id = _todoList.Count > 0 ? _todoList.Max(t => t.Id) + 1 : 1;
-            _todoList.Add(item);
-            return CreatedAtAction(nameof(GetAll), new { id = item.Id }, item);
+            var game = new GameItem
+            {
+                Id = _gamelist.Count > 0 ? _gamelist.Max(g => g.Id) + 1 : 1,
+                Name = newGameDto.Name,
+                Genre = newGameDto.Genre,
+                Rating = newGameDto.Rating,
+                IsInstalled = newGameDto.IsInstalled
+            };
+            _gamelist.Add(game);
+            return CreatedAtAction(nameof(GetAll), new { id = game.Id }, game);
         }
-
-        // PUT: api/todo/{id} (Görevi günceller/tamamlandı yapar)
-        [HttpPut("{id}")]
-        public IActionResult Update(int id, [FromBody] ToDoItem updatedItem)
+        [HttpPut]
+        public IActionResult Update(int id, [FromBody] CreateGameDto updatedGameDto)
         {
-            var todo = _todoList.FirstOrDefault(t => t.Id == id);
-            if (todo == null) return NotFound("Görev bulunamadı!");
+            var game = _gamelist.FirstOrDefault(g => g.Id == id);
+            if (game == null)
+            {
+                return NotFound("Güncellemek istenen oyun bulunamadı!");
+            }
+            game.Name = updatedGameDto.Name;
+            game.Genre = updatedGameDto.Genre;
+            game.Rating = updatedGameDto.Rating;
+            game.IsInstalled = updatedGameDto.IsInstalled;
+            return NoContent();
 
-            todo.Title = updatedItem.Title;
-            todo.IsCompleted = updatedItem.IsCompleted;
-
-            return Ok(todo);
         }
-
-        // DELETE: api/todo/{id} (Görevi siler)
         [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
+         public IActionResult Delete (int id)
         {
-            var todo = _todoList.FirstOrDefault(t => t.Id == id);
-            if (todo == null) return NotFound("Görev zaten yok!");
-
-            _todoList.Remove(todo);
-            return Ok("Görev başarıyla silindi.");
+            var game = _gamelist.FirstOrDefault(g => g.Id == id);
+            if(game == null)
+            {
+                return NotFound("Silinmek istenen oyun bulunamadı!");
+            }
+            _gamelist.Remove(game);
+            return NoContent();
         }
+   
+
+    
     }
+       
+         
 }
+
+    
+
